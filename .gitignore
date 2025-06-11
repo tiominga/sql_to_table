@@ -1,0 +1,11 @@
+# Ambiente virtual
+venv/
+env/
+bin/
+lib/
+lib64/
+pyvenv.cfg
+
+# Arquivos Python compilados
+__pycache__/
+*.pyc
