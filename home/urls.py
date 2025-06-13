@@ -23,4 +23,8 @@ app_name = 'home'
 urlpatterns = [
    
      path('',views.home_index,name='index'),
+     path('table/',views.home_sql_to_table,name='table'),
+     path('delete/',views.home_delete,name='delete'),
+     path('edit/',views.home_edit,name='edit'),
+
 ]
