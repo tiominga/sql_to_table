@@ -57,6 +57,9 @@ class SqlToTable:
             total = cursor.fetchone()[0]
         return total
     
+
+    
+    
     def __get_pagination_buttons(self):
         total_rows = self.__get_total_rows()
         if total_rows == 0:
@@ -66,15 +69,25 @@ class SqlToTable:
             if total_rows % int(self.pagination) > 0:
                 n_buttons += 1
 
-        html_buttons = '<div class="d-flex justify-content-center mt-3 flex-wrap" style="gap: 5px;">'
+        div_open = '<div class="d-flex justify-content-center mt-3 flex-wrap" style="gap: 5px;">'
+        html_buttons = ""
+
         for i in range(n_buttons):
             offset_value = i * int(self.pagination)
             html_buttons += f"<button type=\"submit\" class=\"btn btn-sm btn-outline-primary\" onclick=\"document.getElementById('stt_offset').value = {offset_value};document.getElementById('stt_offset').focus()\">{i+1}</button>"
-        html_buttons += '</div>'    
-        return html_buttons    
+            bigger = offset_value
+
+        first_button = f"<button type=\"submit\" class=\"btn btn-sm btn-outline-primary\" onclick=\"stt_offset.value = +stt_offset.value - +stt_pagination.value;document.getElementById('stt_offset').focus()\"><<</button>"    
+
+        last_button =  f"<button type=\"submit\" class=\"btn btn-sm btn-outline-primary\" onclick=\"stt_offset.value = +stt_offset.value + +stt_pagination.value;document.getElementById('stt_offset').focus()\">>></button>"        
+
+        return div_open+first_button+html_buttons+last_button+'</div>'    
+
+    
+            
 
 
-    def get_buttons(self, id_value):
+    def __get_buttons(self, id_value):
         # Generate HTML for action buttons with consistent size and spacing
         button_style = (
             "padding: 0.3rem 0.6rem; min-width: 80px; margin-right: 5px; "
@@ -96,15 +109,6 @@ class SqlToTable:
             )
 
         return buttons
-    
-
-    def __set_pagination(self):
-        pagination_at = self.pagination
-
-        if pagination_at is None:
-            return ""
-        
-
 
 
     def query_to_html(self):
@@ -123,7 +127,9 @@ class SqlToTable:
         table_html += '<thead><tr>'
         for column in columns:
             table_html += f'<th>{escape(column)}</th>'
-        table_html += '<th style="white-space: nowrap; width: 1%;">Actions</th></tr></thead>'
+
+        if self.edit_rout or self.delete_rout:            
+            table_html += '<th style="white-space: nowrap; width: 1%;">Actions</th></tr></thead>'
 
         # Table body
         table_html += '<tbody>'
@@ -132,9 +138,11 @@ class SqlToTable:
             for column in row:
                 table_html += f'<td>{escape(str(column))}</td>'
 
-            row_id = row[id_index]
-            buttons = self.get_buttons(row_id)
-            table_html += f'<td style="white-space: nowrap;">{buttons}</td></tr>'
+            if self.edit_rout or self.delete_rout:
+                row_id = row[id_index]
+                buttons = self.__get_buttons(row_id)
+                table_html += f'<td style="white-space: nowrap;">{buttons}</td></tr>'
+
         table_html += '</tbody></table>'
 
         pagination_buttons = self.__get_pagination_buttons()
