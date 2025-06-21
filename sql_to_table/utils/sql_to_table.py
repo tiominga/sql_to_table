@@ -7,6 +7,8 @@ class SqlToTable:
         self.params = None
         self.edit_rout = None  # Name of the JavaScript function to handle editing
         self.delete_rout = None  # Name of the JavaScript function to handle deletion
+        self.pagination = None  # Placeholder for pagination logic if needed
+        self.offset = 0  # Default offset for pagination
 
     def set_query(self, query):
         self.query = query
@@ -29,12 +31,48 @@ class SqlToTable:
     def set_delete_rout(self, delete_rout):
         self.delete_rout = delete_rout
 
+    def set_pagination(self, pagination):
+        self.pagination = pagination    
+
+    def set_offset(self, offset):        
+            self.offset = offset
+        
     def execute_query(self):
+        query = self.query
+        if (self.pagination is not None and self.pagination != "0"):
+            query += f" LIMIT {self.pagination} OFFSET {self.offset}"
+
+        print(f"Executing SQL Query: {query} with params: {self.params}")
+
         with connections['default'].cursor() as cursor:
-            cursor.execute(self.query, self.params)
+            cursor.execute(query, self.params)
             result = cursor.fetchall()
             columns = [desc[0] for desc in cursor.description]
         return result, columns
+    
+    def __get_total_rows(self):
+        count_query = f"SELECT COUNT(*) FROM ({self.query}) as sub"
+        with connections['default'].cursor() as cursor:
+            cursor.execute(count_query, self.params or [])
+            total = cursor.fetchone()[0]
+        return total
+    
+    def __get_pagination_buttons(self):
+        total_rows = self.__get_total_rows()
+        if total_rows == 0:
+            return ""
+        else:
+            n_buttons = total_rows // int(self.pagination)
+            if total_rows % int(self.pagination) > 0:
+                n_buttons += 1
+
+        html_buttons = '<div class="d-flex justify-content-center mt-3 flex-wrap" style="gap: 5px;">'
+        for i in range(n_buttons):
+            offset_value = i * int(self.pagination)
+            html_buttons += f"<button type=\"submit\" class=\"btn btn-sm btn-outline-primary\" onclick=\"document.getElementById('stt_offset').value = {offset_value};document.getElementById('stt_offset').focus()\">{i+1}</button>"
+        html_buttons += '</div>'    
+        return html_buttons    
+
 
     def get_buttons(self, id_value):
         # Generate HTML for action buttons with consistent size and spacing
@@ -58,6 +96,16 @@ class SqlToTable:
             )
 
         return buttons
+    
+
+    def __set_pagination(self):
+        pagination_at = self.pagination
+
+        if pagination_at is None:
+            return ""
+        
+
+
 
     def query_to_html(self):
         result, columns = self.execute_query()
@@ -88,5 +136,9 @@ class SqlToTable:
             buttons = self.get_buttons(row_id)
             table_html += f'<td style="white-space: nowrap;">{buttons}</td></tr>'
         table_html += '</tbody></table>'
+
+        pagination_buttons = self.__get_pagination_buttons()
+
+        table_html += pagination_buttons
 
         return table_html

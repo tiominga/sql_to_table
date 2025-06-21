@@ -16,10 +16,16 @@
     <form method="post" id="form_query" action="{% url 'home:table' %}">
 
         {% csrf_token %}
-        <input type="text" name="query" placeholder="Enter your query here" value="select * from customer">
+        <div style = "opacity:0;">
+            <input type="text" name="query" placeholder="Enter your query here" value="select * from customer where first_name like concat('%%',%s,'%%')">            
+            <input type="text" name="edit_rout" placeholder="Enter your rout to edit">
+            <input type="text" name="delete_rout" placeholder="Enter your rout to delete">
+            <input type="text" name="pagination" placeholder="pagination" value="10">
+            <input type="text" name="offset" placeholder="offset" id="stt_offset" value="0" onFocus="form_fetch()">
+        </div>
+
+        <label for="params">Customer initialname:</label>
         <input type="text" name="params" placeholder="Enter your params here, with comma separated values">
-        <input type="text" name="edit_rout" placeholder="Enter your rout to edit">
-        <input type="text" name="delete_rout" placeholder="Enter your rout to delete">
         <button type="button" onclick="form_fetch()">Run</button>
 
     </form>

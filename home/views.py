@@ -17,6 +17,10 @@ def home_sql_to_table(request):
     params = request.POST.get('params')
     edit_rout = request.POST.get('edit_rout', '') or None
     delete_rout = request.POST.get('delete_rout', '') or None
+    pagination = request.POST.get('pagination', '') or None
+    offset = request.POST.get('offset', 0)
+
+  
 
 
     # Convert the SQL query to a table
@@ -25,6 +29,8 @@ def home_sql_to_table(request):
     obj_sql_to_table.set_params(params)
     obj_sql_to_table.set_edit_rout(edit_rout)
     obj_sql_to_table.set_delete_rout(delete_rout)
+    obj_sql_to_table.set_pagination(pagination)
+    obj_sql_to_table.set_offset(offset)
 
     table = obj_sql_to_table.query_to_html()
 
