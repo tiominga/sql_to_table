@@ -1,0 +1,50 @@
+pip install django
+sudo apt install pkg-config libmariadb-dev libssl-dev  
+pip install mysqlclient
+sudo apt-get install libmysqlclient-dev
+sudo apt update
+sudo apt install sqlite3
+pip install django_extensions
+pip install python-dotenv
+pip install gunicorn
+python -m pip install Pillow
+
+
+#Mariadb (just to test, the app uses sqlite)
+
+create database test;
+
+
+CREATE USER 'test'@'localhost' IDENTIFIED BY 'test';
+GRANT ALL PRIVILEGES ON test.* TO 'test'@'localhost';
+FLUSH PRIVILEGES;
+
+
+use test;
+
+create table customer (id int not null primary key auto_increment,first_name varchar(250),adress varchar(250),email varchar(200),phone varchar(25),status int default 1);
+
+DELIMITER $$
+
+CREATE PROCEDURE populate_customer()
+BEGIN
+DECLARE i INT DEFAULT 1;
+WHILE i <= 100 DO
+INSERT INTO customer (first_name, adress, email, phone, status)
+VALUES (
+CONCAT('Cliente ', i),
+CONCAT('Rua ', i, ', Bairro ', FLOOR(RAND() * 10), ', Cidade ', FLOOR(RAND() * 10)),
+CONCAT('cliente', i, '@example.com'),
+CONCAT('+55 (', FLOOR(RAND() * 90) + 10, ') ', FLOOR(RAND() * 9000) + 1000, '-', FLOOR(RAND() * 9000) + 1000),
+IF(RAND() < 0.1, 0, 1)
+);
+SET i = i + 1;
+END WHILE;
+END$$
+
+DELIMITER ;
+
+CALL populate_customer();
+
+DROP PROCEDURE populate_customer;
+

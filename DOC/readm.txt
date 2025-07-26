@@ -1,0 +1,120 @@
+1-Open the folder sql_to_table/utils/
+
+2-Make a folder in the root of your project, called utils, in the same level of manage.py
+
+3-Copy the files __init__.py and sql_to_table.py to the folder utils in your project
+
+4-Add this in the head of the view that will use the sql_to_table
+
+from django.http import JsonResponse
+import utils.sql_to_table
+
+
+5-This is an exemplo of a def to call de package sql_to_table (task_grid.js)
+
+def task_sql_to_table(request):
+    print("to aqui")
+    sql = "select id,type,date_format(date_add,'%%Y-%%m') as date from task_task order by date_add"
+    #in the query, the field id is necessary. Do not add ; on the end of the query
+    params = ''
+    edit_function = 'edit_task'
+    delete_function = 'delete_task'
+    tr_function = 'tr_click'
+    pagination = 10
+    style_index = request.POST.get('style_table', 0)
+    
+    offset = request.POST.get('offset', 0)
+
+    # Convert the SQL query to a table
+    obj_sql_to_table = sql_to_table.SqlToTable()
+    obj_sql_to_table.set_query(sql)
+    obj_sql_to_table.set_params(params)
+    obj_sql_to_table.set_edit_function(edit_function)
+    obj_sql_to_table.set_delete_function(delete_function)
+    obj_sql_to_table.set_tr_function(tr_function)
+    obj_sql_to_table.set_pagination(pagination)
+    obj_sql_to_table.set_offset(offset)
+    obj_sql_to_table.set_style_index(style_index)
+
+    table = obj_sql_to_table.query_to_html()
+
+    # Render the table in the template
+    return JsonResponse({'status':'success','table':table})
+
+
+ 6-html exemplo
+ {% extends "main.html" %} {% load static %} 
+ {%block head%}
+
+    <script src="{% static 'task/js/task_grid.js' %}"></script>
+
+{%endblock%} {% block body %}
+
+<form method="post" id="form_query" action="{% url 'task:task_sql_to_table' %}">
+  {% csrf_token %}
+
+  <input type="text" name="offset" placeholder="offset" id="stt_offset" value="0" onFocus="form_fetch()">
+
+  <button type="button" onclick="form_fetch(true)">Run</button>
+</form>
+
+ <div id="dv_data" style="border:1px solid" ></div>
+
+{%endblock%}  
+
+
+
+
+
+ 7-js exemplo
+
+ function form_fetch(reset_offset = false) {
+
+    if (reset_offset) { stt_offset.value = 0; }
+    f_orm = document.getElementById("form_query");
+    formData = new FormData(f_orm);
+    const csrfToken = formData.get('csrfmiddlewaretoken');
+    const url = f_orm.action;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status == 'success') {
+                document.getElementById("dv_data").innerHTML = data.table;
+            } else {
+                alert(data.message);
+            }
+        })
+
+}
+
+function edit_task(id, event) {
+
+    event.stopPropagation();
+    alert("Edit function is not implemented yet. id: " + id);
+
+
+}
+
+function delete_task(id, event) {
+
+    event.stopPropagation();
+    alert("Delete function is not implemented yet. id: " + id);
+
+}
+
+function tr_click(id, event) {
+
+    event.stopPropagation();
+    alert("Row click function is not implemented yet. ID: " + id);
+
+}
+
+
+
